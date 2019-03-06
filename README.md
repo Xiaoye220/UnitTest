@@ -1,12 +1,21 @@
 iOS 自动化测试
 
+测试环境
+
+* Xcode `10.1`
+* Jenkins `2.135`
+  * JUnit `1.24`
+  * HTML Publisher `1.18`
+* slather `2.4.6`
+* ocunit2junit `1.4`
+
 
 
 ### 1.基础测试
 
 #### 1.1添加需要测试代码
 
-添加需要测试的代码，实现的是 int 类型的加法和除法
+我是通过 `pod lib create UnitTest` 创建的工程，在工程中添加一下需要测试的代码，实现的是 int 类型的加法和除法
 
 ```objc
 @interface Caculator : NSObject
@@ -114,3 +123,63 @@ sudo gem install slather -n /usr/local/bin
 
 #### 3.4 配置 jenkins
 
+##### 3.4.1 安装插件
+
+在插件管理中安装插件 [JUnit](https://plugins.jenkins.io/junit) 和 [HTML Publisher](https://plugins.jenkins.io/htmlpublisher)
+
+##### 3.4.2 新建一个工程 iOSUnitTest
+
+##### 3.4.3 配置工程
+
+(1)添加 shell 脚本
+
+![4](screenshot/4.png)
+
+```bash
+# 删除 UnitTest 文件夹
+rm -rf UnitTest
+# 从 git clone 项目到 UnitTest 文件夹
+git clone --depth=1 https://github.com/Xiaoye220/UnitTest.git UnitTest
+
+cd ${WORKSPACE}/UnitTest/Example
+
+pod install
+
+# 进行测试并通过 ocunit2junit 转化为 JUnit 格式的结果
+xcodebuild test -workspace UnitTest.xcworkspace -scheme UnitTest-Example -destination 'platform=iOS Simulator,name=iPhone XS' -configuration Debug -enableCodeCoverage YES 2>&1 | ocunit2junit
+
+
+# 创建 xml 报告，默认 xml 报告保存在当前目录 test-reports 文件夹
+slather coverage --scheme UnitTest-Example --workspace UnitTest.xcworkspace UnitTest.xcodeproj
+# 创建 html 报告，默认 html 报告保存路径为前目录 html 文件夹
+slather coverage --html --scheme UnitTest-Example --workspace UnitTest.xcworkspace UnitTest.xcodeproj 
+```
+
+* 如果项目包含 `xcworkspace` 要指定 `-workspace UnitTest.xcworkspace`
+* `-scheme` 为当前测试的 scheme，如果不知道，可以在`xcworkspace` 目录下执行命令 `xcodebuild -list` ，可以看到所有的 scheme
+*  `slather` 默认生成为 xml 报告，在当前目录的 `test-reports` 文件夹中
+*  `slather`  添加了 `--html` 后会生成 html 报告，在当前目录的 `html` 文件夹中
+
+(2) 添加构建后的操作，显示测试结果以及测试覆盖率
+
+![5](screenshot/5.png)
+
+(3) 立即构建
+
+在构建完后我们可以看到结果
+
+![6](screenshot/6.png)
+
+查看测试覆盖率详情
+
+![7](screenshot/7.png)
+
+查看测试结果详情
+
+![8](screenshot/8.png)
+
+
+
+### 参考资料
+
+[Jenkins实现iOS自动化测试及覆盖率报告输出](https://www.jianshu.com/p/21bb090b200c)

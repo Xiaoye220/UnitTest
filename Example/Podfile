@@ -1,0 +1,11 @@
+platform :ios, '8.0'
+
+target 'UnitTest_Example' do
+  pod 'UnitTest', :path => '../'
+
+  target 'UnitTest_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

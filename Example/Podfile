@@ -2,10 +2,22 @@ platform :ios, '8.0'
 
 target 'UnitTest_Example' do
   pod 'UnitTest', :path => '../'
-
+  pod 'AFNetworking'
+  
   target 'UnitTest_Tests' do
     inherit! :search_paths
+  end
+end
 
-    
+# Disable Code Coverage for Pods projects
+post_install do |installer_representation|
+  installer_representation.pods_project.targets.each do |target|
+    # 因为是通过 :path 方式添加的 UnitTest 源码，为了避免把这块一起过滤了，这里做一次判断
+    # 只有不是 UnitTest 的时候关闭 Coverage 的支持
+    if target.name != 'UnitTest'
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ENABLE_CODE_COVERAGE'] = 'NO'
+      end
+    end
   end
 end

@@ -97,6 +97,42 @@ iOS 自动化测试
 
 ![3](screenshot/3.png)
 
+#### 2.3 去除 CocoaPods 添加的第三方库的覆盖率
+
+加入我在 Podfile 中添加了 `pod AFNetworking` 后再进行一次测试，我们可以看到以下结果。结果中包含了 `AFNetworking` 的覆盖率，但是在我们日常使用中我们只关心自己的代码的覆盖率而不关心第三方库的覆盖率
+
+![9](screenshot/9.png)
+
+
+
+针对这种情况，可以通过修改 Podfile 文件，使 Coverage 不支持指定 target，如下为一个完整的 Podfile 文件，`pod install` 后再测试，就可以去掉 `AFNetworking` 的覆盖率了。
+
+```ruby
+platform :ios, '8.0'
+
+target 'UnitTest_Example' do
+  pod 'UnitTest', :path => '../'
+  pod 'AFNetworking'
+  
+  target 'UnitTest_Tests' do
+    inherit! :search_paths
+  end
+end
+
+# Disable Code Coverage for Pods projects
+post_install do |installer_representation|
+  installer_representation.pods_project.targets.each do |target|
+    # 因为是通过 :path 方式添加的 UnitTest 源码，为了避免把这块一起过滤了，这里做一次判断
+    # 只有不是 UnitTest 的时候关闭 Coverage 的支持
+    if target.name != 'UnitTest'
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ENABLE_CODE_COVERAGE'] = 'NO'
+      end
+    end
+  end
+end
+```
+
 
 
 ### 3. Jenkins 集成自动化测试
@@ -183,3 +219,6 @@ slather coverage --html --scheme UnitTest-Example --workspace UnitTest.xcworkspa
 ### 参考资料
 
 [Jenkins实现iOS自动化测试及覆盖率报告输出](https://www.jianshu.com/p/21bb090b200c)
+
+[How to exclude Pods from Code Coverage in Xcode](https://stackoverflow.com/questions/39674057/how-to-exclude-pods-from-code-coverage-in-xcode)
+

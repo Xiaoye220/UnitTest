@@ -3,11 +3,12 @@ iOS 自动化测试
 测试环境
 
 * Xcode `10.1`
+* iOS `12`
 * Jenkins `2.135`
-  * JUnit `1.24`
-  * HTML Publisher `1.18`
-* slather `2.4.6`
-* ocunit2junit `1.4`
+  *  [JUnit](https://plugins.jenkins.io/junit)  `1.24`
+  * [HTML Publisher](https://plugins.jenkins.io/htmlpublisher) `1.18`
+* [slather](https://github.com/SlatherOrg/slather) `2.4.6`
+* [OCUnit2JUnit](https://github.com/ciryon/OCUnit2JUnit) `1.4`
 
 
 
@@ -167,7 +168,7 @@ sudo gem install slather -n /usr/local/bin
 
 ##### 3.4.3 配置工程
 
-(1)添加 shell 脚本
+###### (1)添加 shell 脚本
 
 ![4](screenshot/4.png)
 
@@ -196,11 +197,11 @@ slather coverage --html --scheme UnitTest-Example --workspace UnitTest.xcworkspa
 *  `slather` 默认生成为 xml 报告，在当前目录的 `test-reports` 文件夹中
 *  `slather`  添加了 `--html` 后会生成 html 报告，在当前目录的 `html` 文件夹中
 
-(2) 添加构建后的操作，显示测试结果以及测试覆盖率
+###### (2) 添加构建后的操作，显示测试结果以及测试覆盖率
 
 ![5](screenshot/5.png)
 
-(3) 立即构建
+###### (3) 立即构建
 
 在构建完后我们可以看到结果
 
@@ -213,6 +214,21 @@ slather coverage --html --scheme UnitTest-Example --workspace UnitTest.xcworkspa
 查看测试结果详情
 
 ![8](screenshot/8.png)
+
+###### (4) html 忽略指定文件的覆盖率
+
+对于上面的结果，我们其实唯一关心的只有 `Caculator.m` 的覆盖率，其余三个文件 `main.m`、`UTAppDelegate.m`、`UTViewController.m`  都不是我们关心的，那么我们可以在生成 html 的时候忽略指定文件，修改 jenkins 构建脚本中生成 html 的命令为以下
+
+```bash
+# 创建 html 报告，默认 html 报告保存路径为前目录 html 文件夹
+# slather coverage --html --scheme UnitTest-Example --workspace UnitTest.xcworkspace UnitTest.xcodeproj 
+
+# --ignore 后接的是需要忽略文件的路径
+# 以上需要忽略的都在当前目录的 UnitTest 文件夹下
+slather coverage --html --scheme UnitTest-Example --workspace UnitTest.xcworkspace --ignore 'UnitTest/*' UnitTest.xcodeproj 
+```
+
+再次构建，结果就只剩下 `Caculator.m` 的覆盖率了，是不是棒棒哒
 
 
 
